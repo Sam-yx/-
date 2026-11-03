@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1380" height="3220" viewBox="0 0 1380 3220">
+  <rect x="0" y="0" width="100%" height="100%" fill="#ffffff" />
+  <style>
+    .mono { font-family: "Courier New", monospace; font-size: 14px; white-space: pre; fill: #1f2937; }
+    .title { font-family: "Courier New", monospace; font-size: 18px; font-weight: bold; fill: #111827; }
+    .section { font-family: "Courier New", monospace; font-size: 16px; font-weight: bold; fill: #0f766e; }
+    .note { font-family: "Courier New", monospace; font-size: 13px; fill: #4b5563; }
+  </style>
+
+  <text x="20" y="36" class="title">protocol_frames.svg（按 detect/unified_detect.py 当前代码更新）</text>
+  <text x="20" y="58" class="note">更新时间：2026-04-29</text>
+  <text x="20" y="78" class="note">说明：本图只保留当前主流程实际使用的通信帧；代码中仍保留但未走到的旧 builder 会在末尾单独标注。</text>
+
+  <text x="20" y="118" class="section">MCU → PC（3 字节帧）</text>
+  <text x="20" y="142" class="mono">+---------+-------+---------+</text>
+  <text x="20" y="160" class="mono">| Byte 0  | Byte1 | Byte 2  |</text>
+  <text x="20" y="178" class="mono">+---------+-------+---------+</text>
+  <text x="20" y="196" class="mono">|  0xAA   |  CMD  |  0xBB   |</text>
+  <text x="20" y="214" class="mono">+---------+-------+---------+</text>
+  <text x="20" y="234" class="mono">长度：3 字节</text>
+  <text x="20" y="252" class="mono">CMD=0x01 OCR 模式切换</text>
+  <text x="20" y="270" class="mono">CMD=0x02 饮料检测模式切换</text>
+  <text x="20" y="288" class="mono">CMD=0x03 人脸识别模式切换</text>
+  <text x="20" y="306" class="mono">CMD=0x04 OCR 触发拍照</text>
+  <text x="20" y="324" class="mono">CMD=0x05 停止帧应答（饮料/人脸模式收到 0x51 后）</text>
+  <text x="20" y="342" class="mono">CMD=0x06 饮料检测抓取帧应答（收到 0x53 后继续识别）</text>
+  <text x="20" y="360" class="mono">CMD=0x07 饮料检测目标丢失帧应答（收到 0x55 后恢复识别）</text>
+
+  <text x="20" y="382" class="section">MCU → PC（4 字节帧）</text>
+  <text x="20" y="406" class="mono">+---------+-------+-------+---------+</text>
+  <text x="20" y="424" class="mono">| Byte 0  | Byte1 | Byte2 | Byte 3  |</text>
+  <text x="20" y="442" class="mono">+---------+-------+-------+---------+</text>
+  <text x="20" y="460" class="mono">|  0xAA   |  CMD  |  XOR  |  0xBB   |</text>
+  <text x="20" y="478" class="mono">+---------+-------+-------+---------+</text>
+  <text x="20" y="498" class="mono">长度：4 字节；当无数据字节时，XOR = CMD</text>
+  <text x="20" y="516" class="mono">当前主流程实际使用：CMD=0xA4 退出识别（OCR / Face 模式收到后 PC 回复 0xB1）</text>
+  <text x="20" y="534" class="mono">保留定义但当前主流程未消费：CMD=0xA2 微调结束</text>
+
+  <text x="20" y="574" class="section">PC → MCU（当前主流程实际使用的帧）</text>
+  <text x="20" y="596" class="mono">通用说明：</text>
+  <text x="20" y="614" class="mono">1. build_frame(cmd, []) 生成的 4 字节帧，形式都是：0xAA CMD CMD 0xBB</text>
+  <text x="20" y="632" class="mono">2. 当前检测模式和人脸模式的位置帧已经统一为固定校验 0x63</text>
+  <text x="20" y="650" class="mono">3. 区分 0x52 相关帧时，依靠“当前模式 + 帧长度”而不是旧版 XOR 规则</text>
+
+  <text x="20" y="688" class="mono">模式确认帧（5 字节，CMD=0xF0）</text>
+  <text x="20" y="708" class="mono">+--------+------+------+------+--------+</text>
+  <text x="20" y="726" class="mono">| Byte 0 | B1   | B2   | B3   | B4     |</text>
+  <text x="20" y="744" class="mono">+--------+------+------+------+--------+</text>
+  <text x="20" y="762" class="mono">| 0xAA   |0xF0  | mode | 0xF1 | 0xBB   |</text>
+  <text x="20" y="780" class="mono">+--------+------+------+------+--------+</text>
+  <text x="20" y="798" class="mono">mode = 0x01 OCR / 0x02 Detect / 0x03 Face / 0x04 OCR 触发拍照 ACK</text>
+  <text x="20" y="816" class="mono">校验位固定为 0xF1</text>
+
+  <text x="20" y="852" class="mono">OCR 模式识别到饮料瓶帧（4 字节，固定帧）</text>
+  <text x="20" y="872" class="mono">+--------+------+------+--------+</text>
+  <text x="20" y="890" class="mono">| Byte 0 | B1   | B2   | B3     |</text>
+  <text x="20" y="908" class="mono">+--------+------+------+--------+</text>
+  <text x="20" y="926" class="mono">| 0xAA   |0x52  | 0x52 | 0xBB   |</text>
+  <text x="20" y="944" class="mono">+--------+------+------+--------+</text>
+  <text x="20" y="962" class="mono">OCR 识别到商品后发送；每 20ms 重发，直到 MCU 发新的模式切换命令</text>
+
+  <text x="20" y="998" class="mono">饮料检测停止帧（4 字节，固定帧）</text>
+  <text x="20" y="1018" class="mono">+--------+------+------+--------+</text>
+  <text x="20" y="1036" class="mono">| Byte 0 | B1   | B2   | B3     |</text>
+  <text x="20" y="1054" class="mono">+--------+------+------+--------+</text>
+  <text x="20" y="1072" class="mono">| 0xAA   |0x51  | 0x51 | 0xBB   |</text>
+  <text x="20" y="1090" class="mono">+--------+------+------+--------+</text>
+  <text x="20" y="1108" class="mono">检测到目标且 |dx| &lt; 100 时发送；每 20ms 重发，直到 MCU 回复 0x05</text>
+
+  <text x="20" y="1144" class="mono">位置帧（检测模式 / 人脸模式共用 6 字节格式）</text>
+  <text x="20" y="1164" class="mono">+--------+------+------+------+------+--------+</text>
+  <text x="20" y="1182" class="mono">| Byte 0 | B1   | B2   | B3   | B4   | B5     |</text>
+  <text x="20" y="1200" class="mono">+--------+------+------+------+------+--------+</text>
+  <text x="20" y="1218" class="mono">| 0xAA   |0x52  | dxH  | dxL  | 0x63 | 0xBB   |</text>
+  <text x="20" y="1236" class="mono">+--------+------+------+------+------+--------+</text>
+  <text x="20" y="1254" class="mono">dx = 有符号 16 位，表示目标中心 X 与画面中心 X 的差值</text>
+  <text x="20" y="1272" class="mono">正值 = 目标在右侧；负值 = 目标在左侧</text>
+  <text x="20" y="1290" class="mono">当前代码中检测模式和人脸模式都使用固定 0x63，不再使用旧版 XOR=0x52^dxH^dxL</text>
+
+  <text x="20" y="1308" class="mono">饮料检测目标丢失帧（4 字节，固定帧）</text>
+  <text x="20" y="1328" class="mono">+--------+------+------+--------+</text>
+  <text x="20" y="1346" class="mono">| Byte 0 | B1   | B2   | B3     |</text>
+  <text x="20" y="1364" class="mono">+--------+------+------+--------+</text>
+  <text x="20" y="1382" class="mono">| 0xAA   |0x55  | 0x55 | 0xBB   |</text>
+  <text x="20" y="1400" class="mono">+--------+------+------+--------+</text>
+  <text x="20" y="1418" class="mono">位置阶段已开始后，若连续多帧未识别到目标则发送；每20ms重发，直到 MCU 回复 0x07</text>
+
+  <text x="20" y="1454" class="mono">饮料检测抓取帧（4 字节，按目标编码）</text>
+  <text x="20" y="1474" class="mono">+--------+------+------+--------+</text>
+  <text x="20" y="1492" class="mono">| Byte 0 | B1   | B2   | B3     |</text>
+  <text x="20" y="1510" class="mono">+--------+------+------+--------+</text>
+  <text x="20" y="1528" class="mono">| 0xAA   |0x53  | code | 0xBB   |</text>
+  <text x="20" y="1546" class="mono">+--------+------+------+--------+</text>
+  <text x="20" y="1564" class="mono">code: 0x03=RIO_shuimitao, 0x04=Baishi, 0x05=Wangzai, 0x06=Weitanai</text>
+  <text x="20" y="1582" class="mono">其余目标保持旧协议：0xAA 0x53 0x53 0xBB；每 20ms 重发，直到 MCU 回复 0x06</text>
+
+  <text x="20" y="1618" class="mono">人脸停止帧（4 字节，固定帧）</text>
+  <text x="20" y="1638" class="mono">+--------+------+------+--------+</text>
+  <text x="20" y="1656" class="mono">| Byte 0 | B1   | B2   | B3     |</text>
+  <text x="20" y="1674" class="mono">+--------+------+------+--------+</text>
+  <text x="20" y="1692" class="mono">| 0xAA   |0x51  | 0x51 | 0xBB   |</text>
+  <text x="20" y="1710" class="mono">+--------+------+------+--------+</text>
+  <text x="20" y="1728" class="mono">人脸模式匹配到目标且 |dx| &lt; face-stop-threshold（默认 200）后发送；每 20ms 重发，直到 MCU 回复 0x05</text>
+
+  <text x="20" y="1764" class="mono">人脸放货帧（4 字节，固定帧）</text>
+  <text x="20" y="1784" class="mono">+--------+------+------+--------+</text>
+  <text x="20" y="1802" class="mono">| Byte 0 | B1   | B2   | B3     |</text>
+  <text x="20" y="1820" class="mono">+--------+------+------+--------+</text>
+  <text x="20" y="1838" class="mono">| 0xAA   |0x53  | 0x53 | 0xBB   |</text>
+  <text x="20" y="1856" class="mono">+--------+------+------+--------+</text>
+  <text x="20" y="1874" class="mono">人脸模式中 |dx| &lt; face-align-threshold（默认 5）后发送；每 20ms 重发，直到 MCU 发模式切换或退出</text>
+
+  <text x="20" y="1910" class="mono">PC 收到确认帧（4 字节，固定帧）</text>
+  <text x="20" y="1930" class="mono">+--------+------+------+--------+</text>
+  <text x="20" y="1948" class="mono">| Byte 0 | B1   | B2   | B3     |</text>
+  <text x="20" y="1966" class="mono">+--------+------+------+--------+</text>
+  <text x="20" y="1984" class="mono">| 0xAA   |0xB1  | 0xB1 | 0xBB   |</text>
+  <text x="20" y="2002" class="mono">+--------+------+------+--------+</text>
+  <text x="20" y="2020" class="mono">OCR / Face 模式收到 MCU 的 0xA4 退出识别命令后回复</text>
+
+  <text x="20" y="2062" class="section">示例一：OCR 主流程（当前代码）</text>
+  <text x="20" y="2086" class="mono">1. MCU → PC : 0xAA 0x01 0xBB                      切换到 OCR 模式</text>
+  <text x="20" y="2104" class="mono">   PC → MCU : 0xAA 0xF0 0x01 0xF1 0xBB             模式确认</text>
+  <text x="20" y="2122" class="mono">2. MCU → PC : 0xAA 0x04 0xBB                      触发拍照</text>
+  <text x="20" y="2140" class="mono">   PC → MCU : 0xAA 0xF0 0x04 0xF1 0xBB             OCR 触发 ACK（只发一次）</text>
+  <text x="20" y="2158" class="mono">3. PC 拍照 → OCR → LLM 解析商品；若识别到商品：</text>
+  <text x="20" y="2176" class="mono">   PC → MCU : 0xAA 0x52 0x52 0xBB                  OCR 饮料帧（20ms 重发）</text>
+  <text x="20" y="2194" class="mono">   直到 MCU 发新的模式切换命令（0x01 / 0x02 / 0x03）才停止</text>
+  <text x="20" y="2212" class="mono">4. 若 OCR 处理中收到 0xA4，则 PC → MCU : 0xAA 0xB1 0xB1 0xBB</text>
+
+  <text x="20" y="2254" class="section">示例二：饮料检测主流程（当前代码）</text>
+  <text x="20" y="2278" class="mono">1. MCU → PC : 0xAA 0x02 0xBB                      切换到检测模式</text>
+  <text x="20" y="2296" class="mono">   PC → MCU : 0xAA 0xF0 0x02 0xF1 0xBB             模式确认</text>
+  <text x="20" y="2314" class="mono">2. 检测到目标且 |dx| &lt; 100：</text>
+  <text x="20" y="2332" class="mono">   PC → MCU : 0xAA 0x51 0x51 0xBB                  停止帧（20ms 重发）</text>
+  <text x="20" y="2350" class="mono">   MCU → PC : 0xAA 0x05 0xBB                       停止应答</text>
+  <text x="20" y="2368" class="mono">3. 收到 0x05 后发送位置帧：</text>
+  <text x="20" y="2386" class="mono">   PC → MCU : 0xAA 0x52 dxH dxL 0x63 0xBB          位置帧（20ms 重发）</text>
+  <text x="20" y="2404" class="mono">4. 若位置阶段连续 det-lost-frames 帧未识别到目标：</text>
+  <text x="20" y="2422" class="mono">   PC → MCU : 0xAA 0x55 0x55 0xBB                  目标丢失帧（20ms 重发）</text>
+  <text x="20" y="2440" class="mono">   MCU → PC : 0xAA 0x07 0xBB                       丢失恢复应答</text>
+  <text x="20" y="2458" class="mono">   收到 0x07 后回到检测阶段，重新识别</text>
+  <text x="20" y="2476" class="mono">5. 若目标持续存在且 |dx| &lt; align-threshold：</text>
+  <text x="20" y="2494" class="mono">   PC → MCU : 0xAA 0x53 [code] 0xBB                抓取帧（4 个目标按商品码，其余仍为 0x53）</text>
+  <text x="20" y="2512" class="mono">   MCU → PC : 0xAA 0x06 0xBB                       抓取应答</text>
+  <text x="20" y="2530" class="mono">   收到 0x06 后回到检测阶段，继续识别</text>
+
+  <text x="20" y="2572" class="section">示例三：人脸识别主流程（当前代码）</text>
+  <text x="20" y="2596" class="mono">1. MCU → PC : 0xAA 0x03 0xBB                      切换到人脸模式</text>
+  <text x="20" y="2614" class="mono">   PC → MCU : 0xAA 0xF0 0x03 0xF1 0xBB             模式确认</text>
+  <text x="20" y="2632" class="mono">2. 未匹配到目标人脸：</text>
+  <text x="20" y="2650" class="mono">   PC 静默，不向 MCU 发送任何消息</text>
+  <text x="20" y="2668" class="mono">3. 匹配到目标且 |dx| &lt; face-stop-threshold（默认 200）：</text>
+  <text x="20" y="2686" class="mono">   PC → MCU : 0xAA 0x51 0x51 0xBB                  停止帧（20ms 重发）</text>
+  <text x="20" y="2704" class="mono">   MCU → PC : 0xAA 0x05 0xBB                       停止应答</text>
+  <text x="20" y="2722" class="mono">4. 收到 0x05 后发送位置帧：</text>
+  <text x="20" y="2740" class="mono">   PC → MCU : 0xAA 0x52 dxH dxL 0x63 0xBB          人脸位置帧（20ms 重发）</text>
+  <text x="20" y="2758" class="mono">   若人脸暂时丢失则暂停发送，重识别后继续；直到 |dx| &lt; face-align-threshold（默认 5）</text>
+  <text x="20" y="2776" class="mono">5. 对齐后：</text>
+  <text x="20" y="2794" class="mono">   PC → MCU : 0xAA 0x53 0x53 0xBB                  人脸放货帧（20ms 重发，直到模式切换或 0xA4）</text>
+  <text x="20" y="2812" class="mono">6. 收到 0xA4 后：</text>
+  <text x="20" y="2830" class="mono">   PC → MCU : 0xAA 0xB1 0xB1 0xBB                  退出确认（只发一次）</text>
+
+  <text x="20" y="2860" class="section">0x52 帧区分规则（当前代码必须这样理解）</text>
+  <text x="20" y="2884" class="mono">OCR 饮料帧   : 0xAA 0x52 0x52 0xBB                  4 字节，仅 OCR 模式使用</text>
+  <text x="20" y="2902" class="mono">检测位置帧 : 0xAA 0x52 dxH dxL 0x63 0xBB          6 字节，检测模式使用</text>
+  <text x="20" y="2920" class="mono">人脸位置帧 : 0xAA 0x52 dxH dxL 0x63 0xBB          6 字节，人脸模式使用</text>
+  <text x="20" y="2938" class="mono">MCU 依靠“当前模式 + 帧长度（4B / 6B）”区分，不要再按旧版 XOR 规则理解</text>
+
+  <text x="20" y="2980" class="section">代码中保留但当前主流程未使用的旧项</text>
+  <text x="20" y="3004" class="mono">build_ocr_result()       → 0x11 OCR 结果帧（当前 OCR 流程未发送）</text>
+  <text x="20" y="3022" class="mono">build_detect_result()    → 0x21 双字节检测结果帧（当前检测流程未发送）</text>
+  <text x="20" y="3040" class="mono">build_face_pos()         → 0x31 旧人脸位置帧（当前 FaceMode 未发送）</text>
+  <text x="20" y="3058" class="mono">build_no_target()        → 0x3F 旧未找到目标帧（当前 FaceMode 未发送）</text>
+  <text x="20" y="3076" class="mono">build_face_deliver()     → 0x33 旧人脸放货帧（当前 FaceMode 未发送）</text>
+  <text x="20" y="3094" class="mono">build_face_no_target_new() → 0x54 未匹配目标帧（当前 FaceMode 未发送）</text>
+  <text x="20" y="3112" class="mono">CMD_ADJUST_DONE=0xA2     → 常量仍在，但当前主流程未消费</text>
+
+  <text x="20" y="3152" class="note">文件路径：C:\chaoshi\protocol_frames.svg</text>
+  <text x="20" y="3170" class="note">来源：detect/unified_detect.py 当前实现（模式切换、OCR、Detect、Face 三条主流程）</text>
+</svg>

@@ -3,6 +3,67 @@ __pycache__/
 *.py[codz]
 *$py.class
 
+# Editors and operating system files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Local environments and secrets
+.env
+.env.*
+!.env.example
+.venv/
+venv/
+env/
+ENV/
+conda-meta/
+
+# Model weights and exported inference artifacts
+*.pt
+*.pth
+*.ckpt
+*.onnx
+*.engine
+*.tflite
+*.pkl
+*.pickle
+*.safetensors
+*.bin
+
+# Project datasets, captures, and generated runs
+**/detect_dataset/
+**/cls_dataset/
+**/data/
+**/images/
+**/screenshots/
+**/my_photos/
+**/runs/
+**/detection_results/
+**/models/
+
+# Raw visual and video captures
+*.jpg
+*.jpeg
+*.png
+*.mp4
+*.avi
+
+# Temporary editor and backup files
+*.log
+*.tmp
+*.bak
+*.bak_*
+~$*
+comm_log.txt
+*.swp
+
+# Bundled local runtimes and external checkouts
+**/Tesseract/
+**/Paddle/
+**/face_recognition_models_repo/
+**/third_party/
+
 # C extensions
 *.so
 

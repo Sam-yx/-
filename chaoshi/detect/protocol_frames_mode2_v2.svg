@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1520" height="2920" viewBox="0 0 1520 2920">
+  <rect x="0" y="0" width="100%" height="100%" fill="#ffffff" />
+  <style>
+    .mono { font-family: "Courier New", monospace; font-size: 14px; white-space: pre; fill: #1f2937; }
+    .title { font-family: "Courier New", monospace; font-size: 18px; font-weight: bold; fill: #111827; }
+    .section { font-family: "Courier New", monospace; font-size: 16px; font-weight: bold; fill: #0f766e; }
+    .note { font-family: "Courier New", monospace; font-size: 13px; fill: #4b5563; }
+  </style>
+
+  <text x="20" y="36" class="title">protocol_frames_mode2_v2.svg（detect/unified_detect.py 当前模式二协议）</text>
+  <text x="20" y="58" class="note">更新时间：2026-05-15</text>
+  <text x="20" y="78" class="note">说明：本图描述当前 API bbox + 本地 tracker + 0x54 回中 + 0x56 请求重拍 + 0x55 通用收尾 的完整模式二流程。</text>
+
+  <text x="20" y="118" class="section">MCU → PC（模式二相关 3 字节帧）</text>
+  <text x="20" y="142" class="mono">+---------+-------+---------+</text>
+  <text x="20" y="160" class="mono">| Byte 0  | Byte1 | Byte 2  |</text>
+  <text x="20" y="178" class="mono">+---------+-------+---------+</text>
+  <text x="20" y="196" class="mono">|  0xAA   |  CMD  |  0xBB   |</text>
+  <text x="20" y="214" class="mono">+---------+-------+---------+</text>
+  <text x="20" y="234" class="mono">CMD=0x02  切换到饮料检测模式</text>
+  <text x="20" y="252" class="mono">CMD=0x04  触发拍照 / 作为 0x56 的重拍触发</text>
+  <text x="20" y="270" class="mono">CMD=0x06  0x53 抓取帧应答（继续下一个目标或进入批次收尾）</text>
+  <text x="20" y="288" class="mono">CMD=0x07  0x55 通用应答（无目标 / 批次完成 / 目标丢失）</text>
+  <text x="20" y="306" class="mono">CMD=0x08  0x54 回中帧应答（MCU 已回到中位）</text>
+
+  <text x="20" y="348" class="section">PC → MCU（模式二相关帧）</text>
+
+  <text x="20" y="374" class="mono">模式确认帧（5 字节）</text>
+  <text x="20" y="394" class="mono">+--------+------+------+------+--------+</text>
+  <text x="20" y="412" class="mono">| Byte 0 | B1   | B2   | B3   | B4     |</text>
+  <text x="20" y="430" class="mono">+--------+------+------+------+--------+</text>
+  <text x="20" y="448" class="mono">| 0xAA   |0xF0  | mode | 0xF1 | 0xBB   |</text>
+  <text x="20" y="466" class="mono">+--------+------+------+------+--------+</text>
+  <text x="20" y="484" class="mono">mode = 0x02 检测模式确认；mode = 0x04 触发拍照 ACK（只发一次）</text>
+
+  <text x="20" y="520" class="mono">兼容保留停止帧（4 字节）</text>
+  <text x="20" y="540" class="mono">+--------+------+------+--------+</text>
+  <text x="20" y="558" class="mono">| Byte 0 | B1   | B2   | B3     |</text>
+  <text x="20" y="576" class="mono">+--------+------+------+--------+</text>
+  <text x="20" y="594" class="mono">| 0xAA   |0x51  | 0x51 | 0xBB   |</text>
+  <text x="20" y="612" class="mono">+--------+------+------+--------+</text>
+  <text x="20" y="630" class="mono">当前模式二主流程不再使用，保留给旧流程/兼容用途</text>
+
+  <text x="20" y="666" class="mono">位置帧（6 字节，20ms 重发）</text>
+  <text x="20" y="686" class="mono">+--------+------+------+------+------+--------+</text>
+  <text x="20" y="704" class="mono">| Byte 0 | B1   | B2   | B3   | B4   | B5     |</text>
+  <text x="20" y="722" class="mono">+--------+------+------+------+------+--------+</text>
+  <text x="20" y="740" class="mono">| 0xAA   |0x52  | dxH  | dxL  | 0x63 | 0xBB   |</text>
+  <text x="20" y="758" class="mono">+--------+------+------+------+------+--------+</text>
+  <text x="20" y="776" class="mono">dx = 目标中心 X - 画面中心 X，正值=右侧，负值=左侧</text>
+  <text x="20" y="794" class="mono">TRACKING 阶段循环发送，直到 |dx| &lt; det-align-threshold</text>
+
+  <text x="20" y="830" class="mono">抓取帧（4 字节，20ms 重发）</text>
+  <text x="20" y="850" class="mono">+--------+------+------+--------+</text>
+  <text x="20" y="868" class="mono">| Byte 0 | B1   | B2   | B3     |</text>
+  <text x="20" y="886" class="mono">+--------+------+------+--------+</text>
+  <text x="20" y="904" class="mono">| 0xAA   |0x53  | code | 0xBB   |</text>
+  <text x="20" y="922" class="mono">+--------+------+------+--------+</text>
+  <text x="20" y="940" class="mono">code: 0x03=RIO_shuimitao, 0x04=Baishi, 0x05=Wangzai, 0x06=Weitanai</text>
+  <text x="20" y="958" class="mono">其余目标保持 0x53；发送后等待 MCU 回复 0x06</text>
+
+  <text x="20" y="994" class="mono">回中帧（4 字节，20ms 重发）</text>
+  <text x="20" y="1014" class="mono">+--------+------+------+--------+</text>
+  <text x="20" y="1032" class="mono">| Byte 0 | B1   | B2   | B3     |</text>
+  <text x="20" y="1050" class="mono">+--------+------+------+--------+</text>
+  <text x="20" y="1068" class="mono">| 0xAA   |0x54  | 0x54 | 0xBB   |</text>
+  <text x="20" y="1086" class="mono">+--------+------+------+--------+</text>
+  <text x="20" y="1104" class="mono">抓取 ACK 后下一个目标无法直接起 tracker 时发送，直到 MCU 回复 0x08</text>
+
+  <text x="20" y="1140" class="mono">请求重拍帧（4 字节，20ms 重发）</text>
+  <text x="20" y="1160" class="mono">+--------+------+------+--------+</text>
+  <text x="20" y="1178" class="mono">| Byte 0 | B1   | B2   | B3     |</text>
+  <text x="20" y="1196" class="mono">+--------+------+------+--------+</text>
+  <text x="20" y="1214" class="mono">| 0xAA   |0x56  | 0x56 | 0xBB   |</text>
+  <text x="20" y="1232" class="mono">+--------+------+------+--------+</text>
+  <text x="20" y="1250" class="mono">回中后仍无法恢复目标时发送，直到 MCU 回复 0x04 再重新拍照</text>
+
+  <text x="20" y="1286" class="mono">无目标 / 批次完成 / 目标丢失帧（4 字节，20ms 重发）</text>
+  <text x="20" y="1306" class="mono">+--------+------+------+--------+</text>
+  <text x="20" y="1324" class="mono">| Byte 0 | B1   | B2   | B3     |</text>
+  <text x="20" y="1342" class="mono">+--------+------+------+--------+</text>
+  <text x="20" y="1360" class="mono">| 0xAA   |0x55  | 0x55 | 0xBB   |</text>
+  <text x="20" y="1378" class="mono">+--------+------+------+--------+</text>
+  <text x="20" y="1396" class="mono">调用 API 后无目标、实时丢目标、或本批次抓取完成时发送，直到 MCU 回复 0x07</text>
+
+  <text x="20" y="1440" class="section">模式二主流程</text>
+  <text x="20" y="1464" class="mono">1. MCU → PC : 0xAA 0x02 0xBB                      切换到检测模式</text>
+  <text x="20" y="1482" class="mono">   PC → MCU : 0xAA 0xF0 0x02 0xF1 0xBB             模式确认</text>
+
+  <text x="20" y="1518" class="mono">2. MCU → PC : 0xAA 0x04 0xBB                      触发拍照</text>
+  <text x="20" y="1536" class="mono">   PC → MCU : 0xAA 0xF0 0x04 0xF1 0xBB             触发 ACK（只发一次）</text>
+  <text x="20" y="1554" class="mono">   PC 本地拍照 → 调用视觉 API → 返回 label,x1,y1,x2,y2 像素 bbox</text>
+
+  <text x="20" y="1590" class="mono">3A. 若没有目标：</text>
+  <text x="20" y="1608" class="mono">   PC → MCU : 0xAA 0x55 0x55 0xBB                  0x55 每 20ms 重发</text>
+  <text x="20" y="1626" class="mono">   MCU → PC : 0xAA 0x07 0xBB                       0x55 通用应答</text>
+  <text x="20" y="1644" class="mono">   PC 回 PREVIEW，等待下一次 0x04</text>
+
+  <text x="20" y="1680" class="mono">3B. 若有目标：</text>
+  <text x="20" y="1698" class="mono">   PC 先建立 target queue，再按队列顺序逐个进入本地 tracker</text>
+  <text x="20" y="1716" class="mono">   TRACKING 阶段不再逐帧调 API，只靠本地 tracker 输出 dx</text>
+
+  <text x="20" y="1752" class="mono">4. TRACKING：</text>
+  <text x="20" y="1770" class="mono">   PC → MCU : 0xAA 0x52 dxH dxL 0x63 0xBB          位置帧每 20ms 重发</text>
+  <text x="20" y="1788" class="mono">   直到 |dx| &lt; det-align-threshold，转入 GRAB_WAIT_ACK</text>
+
+  <text x="20" y="1824" class="mono">5. GRAB_WAIT_ACK：</text>
+  <text x="20" y="1842" class="mono">   PC → MCU : 0xAA 0x53 [code] 0xBB                抓取帧每 20ms 重发</text>
+  <text x="20" y="1860" class="mono">   MCU → PC : 0xAA 0x06 0xBB                       抓取应答</text>
+  <text x="20" y="1878" class="mono">   若同批次还有剩余目标，继续切换下一个目标</text>
+  <text x="20" y="1896" class="mono">   若本批次目标已全部抓完，发送 0x55 等待 0x07 后回 PREVIEW</text>
+
+  <text x="20" y="1932" class="mono">6. 抓取 ACK 后有后续目标：</text>
+  <text x="20" y="1950" class="mono">   先用 scene_shift 尝试初始化下一个目标的 tracker</text>
+  <text x="20" y="1968" class="mono">   若成功：直接切到下一个目标，继续发 0x52</text>
+  <text x="20" y="1986" class="mono">   若失败：进入 RECENTER_WAIT_ACK，开始发 0x54</text>
+
+  <text x="20" y="2022" class="mono">7. RECENTER_WAIT_ACK：</text>
+  <text x="20" y="2040" class="mono">   PC → MCU : 0xAA 0x54 0x54 0xBB                  回中帧每 20ms 重发</text>
+  <text x="20" y="2058" class="mono">   MCU → PC : 0xAA 0x08 0xBB                       回中完成应答</text>
+  <text x="20" y="2076" class="mono">   PC 收到 0x08 后，用原始 init_box + scene_shift=(0,0) 再试一次 tracker</text>
+  <text x="20" y="2094" class="mono">   成功则恢复该目标；失败则回 PREVIEW 并开始发 0x56 请求重新拍照</text>
+
+  <text x="20" y="2130" class="mono">8. 请求重新拍照：</text>
+  <text x="20" y="2148" class="mono">   PC → MCU : 0xAA 0x56 0x56 0xBB                  0x56 每 20ms 重发</text>
+  <text x="20" y="2166" class="mono">   MCU → PC : 0xAA 0x04 0xBB                       重拍触发</text>
+  <text x="20" y="2184" class="mono">   PC 停止发送 0x56，并立即回 0xAA 0xF0 0x04 0xF1 0xBB 后重新拍照</text>
+
+  <text x="20" y="2220" class="mono">9. LOST_WAIT_ACK：</text>
+  <text x="20" y="2238" class="mono">   PC → MCU : 0xAA 0x55 0x55 0xBB                  目标丢失帧每 20ms 重发</text>
+  <text x="20" y="2256" class="mono">   MCU → PC : 0xAA 0x07 0xBB                       丢失应答</text>
+  <text x="20" y="2274" class="mono">   PC 收到 0x07 后结束当前批次，回 PREVIEW 等待下一次触发</text>
+
+  <text x="20" y="2318" class="section">目标排序规则</text>
+  <text x="20" y="2342" class="mono">1. 先取每个 bbox 的中心点 (cx, cy)</text>
+  <text x="20" y="2360" class="mono">2. 用 (cx - frame_center_x)^2 + (cy - frame_center_y)^2 作为 center_dist</text>
+  <text x="20" y="2378" class="mono">3. 先按 center_dist 从小到大排序</text>
+  <text x="20" y="2396" class="mono">4. 若两个目标的 center_dist 完全相等，则按 cx 从小到大排序：先左后右</text>
+  <text x="20" y="2414" class="mono">5. 完成一个目标并收到 0x06 后，不重新拍照，继续处理同批次剩余目标</text>
+  <text x="20" y="2432" class="mono">6. 可视化窗口会显示 API bbox、tracker bbox、中心点、中心线和 dx 文本</text>
+
+  <text x="20" y="2476" class="section">对应命令行参数</text>
+  <text x="20" y="2500" class="mono">--det-vlm-base-url       模式二视觉 API Base URL</text>
+  <text x="20" y="2518" class="mono">--det-vlm-api-key        模式二视觉 API Key</text>
+  <text x="20" y="2536" class="mono">--det-vlm-model          模式二视觉模型名</text>
+  <text x="20" y="2554" class="mono">--det-vlm-timeout        模式二视觉 API 请求超时</text>
+  <text x="20" y="2572" class="mono">--det-align-threshold    对齐阈值，默认 10</text>
+  <text x="20" y="2590" class="mono">--notfound-delay         丢失持续时间阈值</text>
+  <text x="20" y="2608" class="mono">--notfound-min-frames    丢失帧数阈值</text>
+  <text x="20" y="2626" class="mono">--det-refine-bbox        是否启用本地 bbox 精修</text>
+
+  <text x="20" y="2670" class="note">文件路径：C:\chaoshi\detect\protocol_frames_mode2_v2.svg</text>
+  <text x="20" y="2688" class="note">原始旧协议图仍保留在 C:\chaoshi\protocol_frames.svg</text>
+</svg>
